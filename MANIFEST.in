@@ -1,0 +1,3 @@
+include la-run README
+recursive-include modules *
+recursive-include modules/config-templates *
