@@ -3,7 +3,28 @@
 
 from socket import gethostname, getfqdn, gethostbyname
 import sys
+import time
 import os.path
+import shutil
+
+
+class Service:
+    """Base class. Must be subclassed."""
+    cfg = []
+    # The templates for configuratin files must be in this directory.
+    templates_dir = '/usr/local/lib/config-templates'
+
+    def __init__(self, name):
+        self.name = name
+
+    def _save_cfg(self, cfgfile):
+        suffix = time.strftime('.la-%d%m%Y-%H%M', time.localtime())
+        shutil.copy(cfgfile, cfgfile + suffix)
+
+    def save_configs(self, cfg):
+        """Save configs with '.la-%d%m%Y-%H%M' suffices."""
+        for cfg_file in cfg:
+            self._save_cfg(cfg_file)
 
 
 def getcurnames():

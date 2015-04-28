@@ -2,39 +2,79 @@
 
 
 import sys
-import labase
+import argparse
+import os.path
+from labase import Service, getcurnames
 
 
-# Macroses
-# {LA_DOMAIN_NAME}
-# {LA_DOMAIN_CONTROLLER}
-
-# Required arguments:
-# - type: controller, fs, of client
-# - controller name: hostname
-
-
-class ALDConfigure(type, dc):
+class ALDConfigure(Service):
     """docstring"""
-    def __init__(self, type, dc)
-        self.type = type
-        self.dc = dc
+    macroses={
+              '{LA_DOMAIN_NAME}':None,
+              '{LA_DOMAIN_CONTROLLER}':None
+             }
+
+    def __init__(self):
+        super().__init__('ALD')
+        args = get_args()
+        self.role = args.role
+        self.srv = args.srv
+        self.cfg.append('/etc/ald/ald.conf')
+
+    def _get_domain(self):
+        fqdn = getcurnames()[1]
+        return fqdn[fqdn.find('.'):]
 
 
-def usage():
-    """Usage text."""
-    print(usage.__doc__)
-
-
-def args():
-
-def usage():
-    """Usage text."""
-    print(usage.__doc__)
+def get_args():
+    """Get command line arguments. Return argparse.Namespace."""
+    desc = "Configure ALD domain controller, file server or client."
+    frmt = argparse.RawTextHelpFormatter
+    role_help = """The role in ALD domain. Possible values:
+        d - domain contrloller
+        f - file server
+        c - client (The default).
+    """
+    parser = argparse.ArgumentParser(description=desc,
+                                     formatter_class=frmt)
+    # The role in ALD domain.
+    parser.add_argument('-r', '--role',
+                        help=role_help,
+                        choices=['d', 'f', 'c'],
+                        nargs='?',
+                        metavar='role',
+                        default='c',
+                        dest='role'
+                       )
+    # ALD server name (domain controller).
+    parser.add_argument('-s', '--server',
+                        help='ALD server hostname.',
+                        metavar='hostname',
+                        required=True,
+                        dest='srv'
+                       )
+    args = parser.parse_args()
+    return args
 
 
 if __name__ == '__main__':
     # Self test code
-    print('%s executed directly' % sys.argv[0])
-    print(labase.getcurnames())
-    print(labase.getcuraddr())
+    print(getcurnames())
+    print()
+
+    # get_args
+    myargs = get_args()
+    print(type(myargs))
+    print('Role:', myargs.role)
+    print('Server:', myargs.srv)
+
+    # ALDConfigure
+    dom = ALDConfigure()
+    print(dom.name)
+    print(dom.role)
+    print(dom.srv)
+    print(dom.cfg)
+    print(dom.templates_dir)
+    print(dom._get_domain())
+    dom.save_configs(dom.cfg)
+
