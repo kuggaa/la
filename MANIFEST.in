@@ -1,3 +1,6 @@
 include la-run README
 recursive-include modules *
 recursive-include modules/config-templates *
+prune __pycache__
+prune modules/__pycache__
+global-exclude *.git *.svn *.swp

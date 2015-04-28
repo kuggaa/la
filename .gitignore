@@ -58,3 +58,6 @@ target/
 
 # Vim's *.swp files
 *.swp
+
+# Distutils 'MANIFEST' file
+MANIFEST
