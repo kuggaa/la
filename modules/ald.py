@@ -9,10 +9,8 @@ from labase import Service, getcurnames
 
 class ALDConfigure(Service):
     """docstring"""
-    macroses={
-              '{LA_DOMAIN_NAME}':None,
-              '{LA_DOMAIN_CONTROLLER}':None
-             }
+    macroses = {'{LA_DOMAIN_NAME}':None,
+                '{LA_DOMAIN_CONTROLLER}':None}
 
     def __init__(self):
         super().__init__('ALD')
@@ -21,9 +19,13 @@ class ALDConfigure(Service):
         self.srv = args.srv
         self.cfg.append('/etc/ald/ald.conf')
 
-    def _get_domain(self):
+    def _populate_macroses(self):
         fqdn = getcurnames()[1]
-        return fqdn[fqdn.find('.'):]
+        self.macroses['{LA_DOMAIN_NAME}'] = fqdn[fqdn.find('.'):]
+        if self.role == 'd':
+            self.macroses['{LA_DOMAIN_CONTROLLER}'] = fqdn
+        else:
+            self.macroses['{LA_DOMAIN_CONTROLLER}'] = self.srv
 
 
 def get_args():
@@ -75,6 +77,8 @@ if __name__ == '__main__':
     print(dom.srv)
     print(dom.cfg)
     print(dom.templates_dir)
-    print(dom._get_domain())
-    dom.save_configs(dom.cfg)
+    #dom.save_configs(dom.cfg)
+    dom._populate_macroses()
+    for key in dom.macroses:
+        print(key, '--', dom.macroses[key])
 

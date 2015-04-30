@@ -26,6 +26,12 @@ class Service:
         for cfg_file in cfg:
             self._save_cfg(cfg_file)
 
+    def modify_config(self, cfgfile, template, func):
+        """Replace cfgfile with template."""
+        with open(cfgfile, 'w') as cfg, open(template) as tmp:
+            for line in tmp:
+                cfg.write(func(line))
+
 
 def getcurnames():
     """Get short and full names. Return tuple."""
