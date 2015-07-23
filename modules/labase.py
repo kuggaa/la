@@ -11,11 +11,18 @@ import shutil
 class Service:
     """Base class. Must be subclassed."""
     cfg = []
-    # The templates for configuratin files must be in this directory.
+    # The templates for configuration files must be in this directory.
     templates_dir = '/usr/local/lib/config-templates'
 
     def __init__(self, name):
         self.name = name
+
+    def __str__(self):
+        res = []
+        res.append('Class: %s\nAttributes:' % self.__class__)
+        for key in self.__dict__.keys():
+            res.append(str(key) + ' --> ' + str(self.__dict__[key]))
+        return '\n'.join(res)
 
     def _save_cfg(self, cfgfile):
         suffix = time.strftime('.la-%d%m%Y-%H%M', time.localtime())
@@ -28,8 +35,8 @@ class Service:
 
     def modify_config(self, cfgfile, template, func):
         """Replace cfgfile with template."""
-        with open(cfgfile, 'w') as cfg, open(template) as tmp:
-            for line in tmp:
+        with open(cfgfile, 'w') as cfg, open(template) as tmpl:
+            for line in tmpl:
                 cfg.write(func(line))
 
 
