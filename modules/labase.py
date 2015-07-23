@@ -8,11 +8,13 @@ import os.path
 import shutil
 
 
+# The templates for configuration files must be in this directory.
+templates_dir = '/usr/local/lib/la/config-templates'
+
+
 class Service:
     """Base class. Must be subclassed."""
-    cfg = []
-    # The templates for configuration files must be in this directory.
-    templates_dir = '/usr/local/lib/config-templates'
+    configs = []
 
     def __init__(self, name):
         self.name = name
@@ -28,9 +30,9 @@ class Service:
         suffix = time.strftime('.la-%d%m%Y-%H%M', time.localtime())
         shutil.copy(cfgfile, cfgfile + suffix)
 
-    def save_configs(self, cfg):
+    def save_configs(self):
         """Save configs with '.la-%d%m%Y-%H%M' suffices."""
-        for cfg_file in cfg:
+        for cfg_file in self.configs:
             self._save_cfg(cfg_file)
 
     def modify_config(self, cfgfile, template, func):
@@ -40,16 +42,19 @@ class Service:
                 cfg.write(func(line))
 
 
-def getcurnames():
-    """Get short and full names. Return tuple."""
-    name = gethostname()
-    return (name, getfqdn(name))
-
-
-def getcuraddr():
-    """Get ipv4 address. Return str."""
-    return gethostbyname(getcurnames()[1])
+def getnetworks():
+    """Get name, address, etc.. Return dictionary."""
+    res = {}
+    res['sname'] = gethostname()
+    res['fname'] = getfqdn(res['sname'])
+    res['ip'] = gethostbyname(res['fname'])
+    # Get domain name by slicing fqdn using short name's length.
+    res['dom'] = res['fname'][len(res['sname']):]
+    return res
 
 
 if __name__ == '__main__':
-    print("%s executed directly. It's useless" % os.path.basename(sys.argv[0]))
+    # Self testing code.
+    nets = getnetworks()
+    for key in nets.keys():
+        print(key, '-->', nets[key])
