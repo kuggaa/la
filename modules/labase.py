@@ -12,6 +12,11 @@ import shutil
 templates_dir = '/usr/local/lib/la/config-templates'
 
 
+class LABaseError(Exception):
+    """Base exception for this module."""
+    pass
+
+
 class Service:
     """Base class. Must be subclassed."""
     configs = []

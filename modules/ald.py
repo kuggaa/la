@@ -8,6 +8,11 @@ import textwrap
 from labase import Service, getnetworks, templates_dir
 
 
+class ALDConfigError(Exception):
+    """Base exception of this module."""
+    pass
+
+
 class ALDConfig(Service):
     """docstring"""
 
@@ -78,6 +83,17 @@ class ALDConfig(Service):
             res_line = line
         return res_line
 
+    def ald_init(self):
+        """Initialize domain controller."""
+        pass
+
+    def ald_join(self):
+        """Join ALD-client to the domain."""
+        pass
+
+    def ald_filesrv_init(self):
+        """Initialize file server."""
+
 
 if __name__ == '__main__':
     # Self test code
@@ -92,5 +108,4 @@ if __name__ == '__main__':
     print("Modify ald.conf")
     ald.modify_config('/etc/ald/ald.conf',
                       os.path.join(templates_dir, 'ald.conf'),
-                      ald.ald_conf_edit
-                     )
+                      ald.ald_conf_edit)
