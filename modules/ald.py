@@ -1,11 +1,14 @@
 """Module for ALD configuration."""
 
-
-import sys
 import argparse
 import os.path
 import textwrap
-from labase import Service, getnetworks, templates_dir
+import sys
+try:
+    from labase import Service, getnetworks, templates_dir
+except ImportError:
+    print("You need to execute 'setup.py install' first!")
+    sys.exit("installation required")
 
 
 class ALDConfigError(Exception):
@@ -14,11 +17,11 @@ class ALDConfigError(Exception):
 
 
 class ALDConfig(Service):
-    """docstring"""
+    """TODO: implement the docstring"""
 
     def __init__(self):
-        super().__init__('ALD')
-        self.configs.append('/etc/ald/ald.conf')
+        super().__init__("ALD")
+        self.configs.append("/etc/ald/ald.conf")
         self.role = ''
         self.srv = ''
         self.passwd = ''
@@ -37,7 +40,7 @@ class ALDConfig(Service):
         # The role in ALD.
         role_help = textwrap.dedent("""\
                         the role in ALD. Possible values:
-                            d - domain contrloller
+                            d - domain controller
                             f - file server
                             c - client (default)
                         """)
@@ -48,14 +51,14 @@ class ALDConfig(Service):
                             metavar='ROLE',
                             default='c',
                             dest='role'
-                           )
+                            )
         # ALD server name (domain controller).
         parser.add_argument('-s', '--server',
                             help='ALD server hostname.',
                             metavar='SERVER_HOSTNAME',
                             required=True,
                             dest='srv'
-                           )
+                            )
         # Admin password (for now it's the same for K/M and admin/admin).
         passwd_help = textwrap.fill("ALD admin password.")
         parser.add_argument('-p', '--password',
@@ -63,7 +66,7 @@ class ALDConfig(Service):
                             metavar='PASSWORD',
                             required=True,
                             dest='passwd'
-                           )
+                            )
         args = parser.parse_args()
         self.role = args.role
         self.srv = args.srv

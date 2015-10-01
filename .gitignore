@@ -61,3 +61,6 @@ target/
 
 # Distutils 'MANIFEST' file
 MANIFEST
+
+# PyCharm
+.idea/*

@@ -2,14 +2,12 @@
 
 
 from socket import gethostname, getfqdn, gethostbyname
-import sys
 import time
-import os.path
 import shutil
 
 
 # The templates for configuration files must be in this directory.
-templates_dir = '/usr/local/lib/la/config-templates'
+templates_dir = "/usr/local/lib/la/config-templates"
 
 
 class LABaseError(Exception):
@@ -25,41 +23,41 @@ class Service:
         self.name = name
 
     def __str__(self):
-        res = []
-        res.append('Class: %s\nAttributes:' % self.__class__)
-        for key in self.__dict__.keys():
-            res.append(str(key) + ' --> ' + str(self.__dict__[key]))
+        res = ["Class: %s\nAttributes:" % self.__class__]
+        for k in self.__dict__.keys():
+            res.append("{0} --> {1}".format(str(k), str(self.__dict__[k])))
         return '\n'.join(res)
 
-    def _save_cfg(self, cfgfile):
-        suffix = time.strftime('.la-%d%m%Y-%H%M', time.localtime())
-        shutil.copy(cfgfile, cfgfile + suffix)
+    @staticmethod
+    def _save_cfg(configfile):
+        suffix = time.strftime(".la-%d%m%Y-%H%M", time.localtime())
+        shutil.copy(configfile, configfile + suffix)
 
     def save_configs(self):
         """Save configs with '.la-%d%m%Y-%H%M' suffices."""
         for cfg_file in self.configs:
             self._save_cfg(cfg_file)
 
-    def modify_config(self, cfgfile, template, func):
-        """Replace cfgfile with template."""
-        with open(cfgfile, 'w') as cfg, open(template) as tmpl:
+    @staticmethod
+    def modify_config(configfile, template, func):
+        """Replace configfile with template."""
+        with open(configfile, 'w') as cfg, open(template) as tmpl:
             for line in tmpl:
                 cfg.write(func(line))
 
 
 def getnetworks():
     """Get name, address, etc.. Return dictionary."""
-    res = {}
-    res['sname'] = gethostname()
-    res['fname'] = getfqdn(res['sname'])
-    res['ip'] = gethostbyname(res['fname'])
+    res = {"sname": gethostname()}
+    res["fname"] = getfqdn(res["sname"])
+    res["ip"] = gethostbyname(res["fname"])
     # Get domain name by slicing fqdn using short name's length.
-    res['dom'] = res['fname'][len(res['sname']):]
+    res["dom"] = res["fname"][len(res["sname"]):]
     return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Self testing code.
     nets = getnetworks()
     for key in nets.keys():
-        print(key, '-->', nets[key])
+        print("{0} --> {1}".format(key, nets[key]))
