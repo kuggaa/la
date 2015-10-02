@@ -4,7 +4,10 @@ import argparse
 import os.path
 import textwrap
 import sys
+import subprocess
+
 try:
+    # noinspection PyUnresolvedReferences
     from labase import Service, getnetworks, templates_dir
 except ImportError:
     print("You need to execute 'setup.py install' first!")
@@ -86,29 +89,76 @@ class ALDConfig(Service):
             res_line = line
         return res_line
 
-    def ald_init(self):
-        """Initialize domain controller."""
-        pass
+    def _create_passwdfile(self):
+        """Create password file. Save path in self.passwdfile."""
+        assert self.passwd, "password is not given"
+        self.passwdfile = os.path.join(os.getenv('HOME'), 'ald-passwd')
+        with open(self.passwdfile, 'w') as pf:
+            pf.write("admin/admin:{0}\nK/M:{0}".format(self.passwd))
+        # Set stricter permissions: only owner can read password file.
+        os.chmod(self.passwdfile, 0o400)
 
-    def ald_join(self):
-        """Join ALD-client to the domain."""
-        pass
+    def _remove_passwdfile(self):
+        """Remove file from path self.passwdfile"""
+        os.unlink(self.passwdfile)
 
-    def ald_filesrv_init(self):
-        """Initialize file server."""
+    def ald_exec(self, cmd, *args):
+        """Create passwd file. Then execute cmd(*args). Then remove passwd."""
+        self._create_passwdfile()
+        try:
+            cmd(*args)
+        finally:
+            self._remove_passwdfile()
+
+    @staticmethod
+    def init(passwd):
+        """Initialize domain controller. Returncode - int."""
+        retval = subprocess.check_call(['/usr/sbin/ald-init',
+                                        'init',
+                                        '--force',
+                                        '--pass-file={}'.format(passwd)]
+                                       )
+        return retval
+
+    @staticmethod
+    def join(passwd, server):
+        """Join ALD client to the domain."""
+        retval = subprocess.check_call(['/usr/sbin/ald-client',
+                                        'join',
+                                        server,
+                                        '--force',
+                                        '--pass-file={}'.format(passwd)]
+                                       )
+        return retval
+
+    @staticmethod
+    def filesrv(passwd, server):
+        """Join ALD client. Then initialize file server."""
+        ALDConfig.join(passwd, server)
+        retval = subprocess.check_call(['/usr/sbin/ald-client',
+                                        'filesrv-init',
+                                        '--force',
+                                        '--pass-file={}'.format(passwd)]
+                                       )
+        return retval
+
+
+# TODO: Make convenient functions for configure various ALD roles.
 
 
 if __name__ == '__main__':
-    # Self test code
     ald = ALDConfig()
-    print("Just created an instance of ALDConfig")
-    print(ald)
     ald.get_args()
-    print("And now we got an arguments")
-    print(ald)
-    print("Save configs")
     ald.save_configs()
-    print("Modify ald.conf")
-    ald.modify_config('/etc/ald/ald.conf',
-                      os.path.join(templates_dir, 'ald.conf'),
-                      ald.ald_conf_edit)
+
+    if ald.role == 'd':
+        ald.modify_config(ald.configs[0],
+                          os.path.join(templates_dir, 'ald.conf'),
+                          ald.ald_conf_edit
+                          )
+        # FIXME: Something wrong with this statement.
+        # ald.ald_exec(ald.init(ald.passwdfile))
+    elif ald.role == 'f':
+        ald.alc_exec(ald.filesrv(ald.passwdfile, ald.srv))
+    else:
+        ald.ald_exec(ald.join(ald.passwdfile, ald.srv))
